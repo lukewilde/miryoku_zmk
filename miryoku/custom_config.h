@@ -2,6 +2,7 @@
 // https://github.com/manna-harbour/miryoku
 
 #define MIRYOKU_NAV_INVERTEDT
+#define MIRYOKU_KLUDGE_MOUSEKEYSPR
 
 #define MIRYOKU_LAYER_BASE \
 &kp Q,             &kp W,             &kp F,             &kp P,             &kp B,             &kp J,             &kp L,             &kp U,             &kp Y,             U_LT(U_NAV, SQT),           \
