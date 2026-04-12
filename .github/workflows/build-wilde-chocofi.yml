@@ -2,11 +2,41 @@
 # https://github.com/manna-harbour/miryoku
 
 name: 'Build Wilde Chocofi'
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+
 jobs:
   build:
     uses: ./.github/workflows/main.yml
     secrets: inherit
     with:
       board: '["nice_nano"]'
-      shield: '["corne_left","corne_right"]'
+      shield: '["corne_left","corne_right","settings_reset"]'
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Rename firmware files
+        run: |
+          for dir in artifacts/*/; do
+            name=$(basename "$dir")
+            for file in "$dir"*.uf2; do
+              [ -f "$file" ] && mv "$file" "artifacts/${name}.uf2"
+            done
+          done
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Latest Firmware
+          make_latest: true
+          files: artifacts/*.uf2
