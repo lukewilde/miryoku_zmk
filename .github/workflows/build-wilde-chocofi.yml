@@ -28,16 +28,32 @@ jobs:
           path: artifacts
       - name: Rename firmware files
         run: |
+          DATE=$(date +%Y-%m-%d)
+          mkdir -p firmware
           for dir in artifacts/*/; do
             name=$(basename "$dir")
             for file in "$dir"*.uf2; do
-              [ -f "$file" ] && mv "$file" "artifacts/${name}.uf2"
+              [ -f "$file" ] || continue
+              if echo "$name" | grep -q "corne_left"; then
+                newname="chocofi_left_${DATE}.uf2"
+              elif echo "$name" | grep -q "corne_right"; then
+                newname="chocofi_right_${DATE}.uf2"
+              elif echo "$name" | grep -q "settings_reset"; then
+                newname="chocofi_settings_reset_${DATE}.uf2"
+              else
+                newname="${name}_${DATE}.uf2"
+              fi
+              mv "$file" "firmware/${newname}"
             done
           done
+      - name: Delete old release
+        run: gh release delete latest -y --cleanup-tag || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest
           name: Latest Firmware
           make_latest: true
-          files: artifacts/*.uf2
+          files: firmware/*.uf2
